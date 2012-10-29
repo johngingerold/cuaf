@@ -2,6 +2,7 @@ OBJS=$(patsubst %.cpp,%.o,$(wildcard *.cpp))
 
 CXXINCLUDE+=-I./ -I../common -I../imageproc -I../gui -I../control
 CXXINCLUDE+=-I/usr/local/include
+CXXINCLUDE+=-I/opt/ros/fuerte/include/opencv -I/opt/ros/fuerte/include 
 
 all: $(OBJS) 
 

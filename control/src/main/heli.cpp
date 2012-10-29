@@ -2,40 +2,30 @@
 #include <iostream>
 #include "CHeli.h"
 #include "CGui.h"
+#include <cv.h>
+#include <highgui.h>
+
+using namespace cv;
 
 CHeli *heli;
 CRawImage *image;
-Uint8 *keys = NULL;
 CGui* gui;
 
 bool stop = false;
 float pitch,roll,yaw,height;
 
 // Process Keyboard Inputs.
-void processKeys()
+
+void processKeys(char keyPress)
 {
-	keys = SDL_GetKeyState(NULL);
-	
 	// End Program.
-	if (keys[SDLK_ESCAPE]) stop = true;
-
-	// Sets variables to move drone.
-	if (keys[SDLK_KP7])  yaw = -20000.0;
-	if (keys[SDLK_KP9])  yaw = 20000.0;
-	if (keys[SDLK_KP4])  roll = -20000.0;
-	if (keys[SDLK_KP6])  roll = 20000.0;
-	if (keys[SDLK_KP8])  pitch = -20000.0;
-	if (keys[SDLK_KP2])  pitch = 20000.0;
-	if (keys[SDLK_KP_PLUS])  height = 20000.0;
-	if (keys[SDLK_KP_MINUS])  height = -20000.0;
-
-	// Change Camera.
-	if (keys[SDLK_z]) heli->switchCamera(0);
-	if (keys[SDLK_x]) heli->switchCamera(1);
+	if (keyPress == 'q') stop = true;
 
 	// Basic Commands.
-	if (keys[SDLK_q]) heli->takeoff();
-	if (keys[SDLK_a]) heli->land();
+	if (keyPress == 'z') heli->takeoff();
+    if (keyPress == 'x') heli->land();
+	if (keyPress == '[') heli->switchCamera(0);
+	if (keyPress == ']') heli->switchCamera(1);
 }
 
 int main(int argc,char* argv[])
@@ -49,16 +39,24 @@ int main(int argc,char* argv[])
 	//this class holds the image from the drone.
 	image = new CRawImage(320,240);
 	
-	while (stop == false){		
-		fprintf(stdout,"Angles %.2lf %.2lf %.2lf ",helidata.phi,helidata.psi,helidata.theta);
-		fprintf(stdout,"Speeds %.2lf %.2lf %.2lf ",helidata.vx,helidata.vy,helidata.vz);
-		fprintf(stdout,"Battery %.0lf ",helidata.battery);
+	namedWindow( "Display Image", CV_WINDOW_AUTOSIZE );
+	
+  
+	while (stop == false){
+		char keypress = waitKey(30);
+		if(keypress != -1) {		
+			processKeys(keypress);
+		}
+		//fprintf(stdout,"Angles %.2lf %.2lf %.2lf ",helidata.phi,helidata.psi,helidata.theta);
+		//fprintf(stdout,"Speeds %.2lf %.2lf %.2lf ",helidata.vx,helidata.vy,helidata.vz);
+		//fprintf(stdout,"Battery %.0lf ",helidata.battery);
 
 		// Stores the latest image from the drone in image.
 		heli->renewImage(image);
 
-		// Get the commands from the keyboard, send them to the Ar.drone, then reset them.
-		processKeys();		
+		imshow( "Display Image", image );
+
+		// Get the commands from the keyboard, send them to the Ar.drone, then reset them.		
 		heli->setAngles(pitch,roll,yaw,height);
 		pitch=roll=yaw=height=0.0;
 

@@ -5,6 +5,7 @@ SUBDIRS+=gui
 OBJS=$(wildcard ../obj/*.o)
 LXXLIBS+=-L/usr/local/lib
 LXXLIBS+=-lSDL
+LXXLIBS+= -L/opt/ros/fuerte/lib -lopencv_calib3d -lopencv_contrib -lopencv_core -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc -lopencv_legacy -lopencv_ml -lopencv_nonfree -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_ts -lopencv_video -lopencv_videostab
 CXXFLAGS+=-Wall -ggdb
 
 COPY_ETC_CMD=../etc/copy.sh

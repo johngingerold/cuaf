@@ -1,10 +1,13 @@
 SUBDIRS+=control
 SUBDIRS+=main
+SUBDIRS+=gui
 
 OBJS=$(wildcard ../obj/*.o)
 LXXLIBS+=-L/usr/local/lib
 LXXLIBS+=-lSDL
+LXXLIBS+= $(pkg-config --libs opencv)
 CXXFLAGS+=-Wall -ggdb
+CXXFLAGS+= $(pkg-config --cflags opencv)
 
 COPY_ETC_CMD=../etc/copy.sh
 COPY_ETC_SRC=../etc
