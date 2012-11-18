@@ -13,6 +13,8 @@ CHeli::CHeli()
 	appInit();
 	imageWidth = 320;
 	imageHeight = 240;
+
+	altitudePid = CPid(1.0, 0.0, 0.0);
 }
 
 CHeli::~CHeli()
@@ -62,16 +64,16 @@ int CHeli::renewImage(CRawImage* image)
 	//  height = picture_height;
 	if (picture_width == 320){
 		for (int i= 0;i<imageWidth*imageHeight;i++){
-			image->data[3*i] = (picbuf[2*i+1]&0xf8);	
-			image->data[3*i+1] = ((picbuf[2*i+1]&0x07)*32)+((picbuf[2*i]&0xe0)/8);	
+			image->data[3*i] = (picbuf[2*i+1]&0xf8);
+			image->data[3*i+1] = ((picbuf[2*i+1]&0x07)*32)+((picbuf[2*i]&0xe0)/8);
 			image->data[3*i+2] = (picbuf[2*i]&0x1f)*8;
 		}
 	}else{
 		memset(image->data,0,imageWidth*imageHeight*3);
 		for (int w= 0;w<picture_width;w++){
 			for (int h= 0;h<picture_height;h++){
-				image->data[3*((h+58)*imageWidth+w+78)+0] = (picbuf[2*(h*imageWidth+w)+1]&0xf8);	
-				image->data[3*((h+58)*imageWidth+w+78)+1] = ((picbuf[2*(h*imageWidth+w)+1]&0x07)*32)+((picbuf[2*(h*imageWidth+w)]&0xe0)/8);	
+				image->data[3*((h+58)*imageWidth+w+78)+0] = (picbuf[2*(h*imageWidth+w)+1]&0xf8);
+				image->data[3*((h+58)*imageWidth+w+78)+1] = ((picbuf[2*(h*imageWidth+w)+1]&0x07)*32)+((picbuf[2*(h*imageWidth+w)]&0xe0)/8);
 				image->data[3*((h+58)*imageWidth+w+78)+2] = (picbuf[2*(h*imageWidth+w)]&0x1f)*8;
 			}
 		}
@@ -81,7 +83,7 @@ int CHeli::renewImage(CRawImage* image)
 
 void CHeli::setAngles(float ipitch, float iroll,float iyaw,float iheight)
 {
-	int32_t yaw,pitch,roll,height;
+    int32_t yaw,pitch,roll,height;
 
 	yaw = saturation(iyaw,33000);
 	roll = saturation(iroll,33000);
@@ -90,4 +92,22 @@ void CHeli::setAngles(float ipitch, float iroll,float iyaw,float iheight)
 
 //	fprintf(stdout,"Angle request: %d %d %d %d ",pitch,roll,height,yaw);
 	at_set_radiogp_input(roll,pitch,height,yaw);
-}	
+}
+
+void CHeli::setAltitude(float altitude)
+{
+    altitudePid.setTargetVal(altitude);
+}
+
+void CHeli::altitudeControlLoop()
+{
+    //@ Todo Find better way to measure time between calls (incorporate the delay in ultrasound measurement).
+    timeval t;
+    gettimeofday(&t, NULL);
+
+    //CPid object know the last time it was called, so only need to pass curent time.
+    float pidOutput = altitudePid.updatePid(helidata.altitude, t.tv_usec/1000000.0);
+
+    //@ Todo Set only vertical speed.
+    //at_set_radiogp_input(0,0,pidOutput,0);
+}
